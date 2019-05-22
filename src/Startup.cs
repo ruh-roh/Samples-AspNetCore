@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using RuhRoh.Samples.WebAPI.Data;
 using RuhRoh.Samples.WebAPI.Data.Services;
 using RuhRoh.Samples.WebAPI.Domain;
 using RuhRoh.Samples.WebAPI.Domain.Services;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace RuhRoh.Samples.WebAPI
 {
@@ -30,6 +32,15 @@ namespace RuhRoh.Samples.WebAPI
 
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Title = "ASP.NET Core Web API",
+                    Version = "v1"
+                });
+            });
 
             ConfigureRuhRoh(services);
         }
@@ -75,7 +86,18 @@ namespace RuhRoh.Samples.WebAPI
             {
                 app.UseDatabaseErrorPage();
                 app.UseDeveloperExceptionPage();
+
+                // Redirect to /swagger
+                var option = new RewriteOptions();
+                option.AddRedirect("^$", "swagger");
+                app.UseRewriter(option);
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ASP.NET Core Web API v1");
+            });
 
             app.UseMvc();
         }
